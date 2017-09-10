@@ -1,19 +1,16 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-group               = 'testgrp'
-version             = '0.2.0'
-status              = 'integration'
-description         = 'TODO - Pls. edit - Gradle bootstrap project for Quasar'
+group = 'testgrp'
+version = '0.0.1'
 
-ext.classifier      = ':jdk8' // ':'
+ext.classifier = ':jdk8' // ':'
 sourceCompatibility = 1.8     // 1.7
 targetCompatibility = 1.8     // 1.7
 
-ext.quasarVer       = '0.7.4'
-ext.junitVer        = '4.12'
+ext.quasarVer = '0.7.7'
+ext.junitVer = '4.12'
 
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 configurations {
     quasar
@@ -26,11 +23,7 @@ configurations.all {
 }
 
 repositories {
-//    mavenLocal()
     mavenCentral()
-//    maven { url "https://oss.sonatype.org/content/repositories/releases" }
-//    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-//    maven { url 'https://maven.java.net/content/repositories/snapshots' }
 }
 
 dependencies {
@@ -38,44 +31,11 @@ dependencies {
 
     quasar "co.paralleluniverse:quasar-core:${quasarVer}${classifier}@jar"
 
+    compile "mysql:mysql-connector-java:5.1.6"
     testCompile "junit:junit:$junitVer"
 }
 
-test {
-    beforeTest { desc ->
-        logger.quiet("Running test: " + desc)
-    }
-
-    afterTest { desc, result ->
-        if(result.resultType == TestResult.ResultType.FAILURE) {
-            logger.quiet("Failed test ${desc.name} [${desc.className}] with exception: ${result.exception}")
-            if(result.exception != null) {
-                result.exception.printStackTrace()
-            }
-        }
-    }
+run {
+    mainClassName = "concurrent.Main"
+    jvmArgs "-javaagent:${configurations.quasar.singleFile}"
 }
-
-tasks.withType(Test) {
-    useJUnit()
-    // systemProperty 'co.paralleluniverse.fibers.verifyInstrumentation', 'true'
-
-    jvmArgs "-Xmx2048m"
-    doLast() {
-        println "file://" + getReports().getHtml().getDestination() + "/index.html"
-    }
-}
-
-mainClassName = "testgrp.QuasarIncreasingEchoApp"
-
-if (project.hasProperty('method')) {
-    apply from: "gradle/${project.getProperty('method')}.gradle"
-} else {
-    apply from: "gradle/agent.gradle"
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.12'
-}
-
-defaultTasks 'test'
